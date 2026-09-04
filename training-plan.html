@@ -174,8 +174,14 @@
         function copyParentLink() {
             savePlanData();
             
-            // استبدل الرابط أدناه برابط موقعك الحقيقي على غيت هب (مثال: https://username.github.io/repository/training-plan.html)
-            const liveUrl = "https://[اسمك].github.io/[اسم-المستودع]/training-plan.html"; 
+            // استخراج اسم المستخدم واسم المستودع تلقائياً من رابط غيت هب الحالي بدون أي تعديل يدوي
+            let liveUrl = window.location.href;
+            if (liveUrl.includes('github.io')) {
+                // الرابط صحيح ورسمي على غيت هب
+            } else {
+                // إذا كنت تختبره محلياً على جهازك، يمكنك استبداله بالرابط الحقيقي يدوياً لمرة واحدة أو وضعه مباشرة:
+                liveUrl = "https://moh98hammad.github.io/ويب-20-سایت-20الاكادميه/training-plan.html"; 
+            }
 
             let shareText = "⚽ *الأكاديمية الإسبانية لكرة القدم* ⚽\n";
             shareText += "📋 *البرنامج والخطّة التدريبية الأسبوعية ونجم الأسبوع*:\n";
