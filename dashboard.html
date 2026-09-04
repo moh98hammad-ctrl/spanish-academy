@@ -9,16 +9,54 @@
 <body class="bg-gray-100 font-sans">
     <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
         <h1 class="text-xl font-bold">الأكاديمية الإسبانية - لوحة التحكم</h1>
-        <div class="flex gap-3">
+        <div class="flex gap-3 items-center">
+            <button onclick="openRequestsModal()" class="bg-amber-500 text-white px-4 py-2 rounded text-sm hover:bg-amber-600 font-semibold relative">
+                📬 طلبات التسجيل المعلقة 
+                <span id="requestsBadge" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-2 py-0.5 text-xs font-bold hidden">0</span>
+            </button>
+            <a href="training-plan.html" class="bg-indigo-600 px-4 py-2 rounded text-sm hover:bg-indigo-700 font-semibold">📋 الخطة التدريبية الشهرية</a>
             <a href="reports.html" class="bg-emerald-600 px-4 py-2 rounded text-sm hover:bg-emerald-700 font-semibold">📊 التقارير الشهرية والسنوية</a>
             <a href="login.html" class="bg-red-500 px-4 py-2 rounded text-sm hover:bg-red-600">تسجيل الخروج</a>
         </div>
     </header>
 
     <main class="container mx-auto p-6 space-y-6">
-        <!-- قسم التحكم بالأسعار والعروض -->
+        <!-- شريط اختيار السنة والشهر -->
+        <section class="bg-white p-4 rounded-xl shadow flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div>
+                    <label for="filterYear" class="block text-xs font-bold text-gray-600 mb-1">السنة:</label>
+                    <select id="filterYear" onchange="renderDashboard()" class="px-3 py-2 border rounded-lg font-semibold bg-gray-50 text-blue-900">
+                        <!-- سيتم تعبئتها ديناميكياً -->
+                    </select>
+                </div>
+                <div>
+                    <label for="filterMonth" class="block text-xs font-bold text-gray-600 mb-1">الشهر:</label>
+                    <select id="filterMonth" onchange="renderDashboard()" class="px-3 py-2 border rounded-lg font-semibold bg-gray-50 text-blue-900">
+                        <option value="all">كل الشهور (السنة كاملة)</option>
+                        <option value="01">يناير (1)</option>
+                        <option value="02">فبراير (2)</option>
+                        <option value="03">مارس (3)</option>
+                        <option value="04">أبريل (4)</option>
+                        <option value="05">مايو (5)</option>
+                        <option value="06">يونيو (6)</option>
+                        <option value="07">يوليو (7)</option>
+                        <option value="08">أغسطس (8)</option>
+                        <option value="09">سبتمبر (9)</option>
+                        <option value="10">أكتوبر (10)</option>
+                        <option value="11">نوفمبر (11)</option>
+                        <option value="12">ديسمبر (12)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="text-sm text-gray-500">
+                <span>عرض اللاعبين والحسابات الخاصة بالشهر المحدد فقط</span>
+            </div>
+        </section>
+
+        <!-- قسم التحكم بالأسعار والعروض العامة -->
         <section class="bg-white p-6 rounded-xl shadow">
-            <h2 class="text-lg font-bold text-gray-800 mb-3">إدارة أسعار الاشتراكات والعروض</h2>
+            <h2 class="text-lg font-bold text-gray-800 mb-3">إدارة أسعار الاشتراكات العامة</h2>
             <form onsubmit="savePrices(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">رسوم الاشتراك الأساسي (دينار)</label>
@@ -37,20 +75,20 @@
         <!-- الملخص المالي -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-xl shadow border-r-4 border-green-500">
-                <h3 class="text-gray-500 text-sm">إجمالي الإيرادات المقبوضة</h3>
+                <h3 class="text-gray-500 text-sm">إجمالي الإيرادات المقبوضة (للفترة)</h3>
                 <p id="totalRev" class="text-2xl font-bold text-green-600 mt-2">0 دينار</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow border-r-4 border-red-500">
-                <h3 class="text-gray-500 text-sm">إجمالي المصروفات</h3>
+                <h3 class="text-gray-500 text-sm">إجمالي المصروفات (للفترة)</h3>
                 <p id="totalExp" class="text-2xl font-bold text-red-600 mt-2">0 دينار</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow border-r-4 border-blue-500">
-                <h3 class="text-gray-500 text-sm">صافي الخزينة</h3>
+                <h3 class="text-gray-500 text-sm">صافي الخزينة (للفترة)</h3>
                 <p id="netProfit" class="text-2xl font-bold text-blue-600 mt-2">0 دينار</p>
             </div>
         </section>
 
-        <!-- تسجبل المصروفات -->
+        <!-- تسجيل المصروفات -->
         <section class="bg-white p-6 rounded-xl shadow">
             <h2 class="text-xl font-bold text-gray-800 mb-4">تسجيل المصروفات (شو صرفنا)</h2>
             <form onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
@@ -107,14 +145,19 @@
                 <table class="w-full text-right border-collapse">
                     <thead>
                         <tr class="bg-gray-100 border-b text-sm">
+                            <th class="p-3">#</th>
                             <th class="p-3">اسم اللاعب</th>
                             <th class="p-3">الفئة</th>
                             <th class="p-3">ولي الأمر والهاتف</th>
-                            <th class="p-3">التوصيل</th>
-                            <th class="p-3">الرسوم</th>
-                            <th class="p-3">المدفوع</th>
+                            <th class="p-3">التوصيل والرسوم</th>
+                            <th class="p-3">المدفوع (الشهر)</th>
                             <th class="p-3">المتبقي</th>
-                            <th class="p-3 text-center">تسجيل دفعة وسند قبض</th>
+                            <th class="p-3 text-center">تفاصيل</th>
+                            <th class="p-3 text-center">تعديل رسوم / خصم</th>
+                            <th class="p-3 text-center">تسجيل دفعة وسند</th>
+                            <th class="p-3 text-center">نسخ السند 📋</th>
+                            <th class="p-3 text-center">رحل للشهر 🔄</th>
+                            <th class="p-3 text-center">إلغاء ❌</th>
                             <th class="p-3 text-center">تذكير واتساب</th>
                         </tr>
                     </thead>
@@ -124,24 +167,261 @@
         </section>
     </main>
 
+    <!-- نافذة تفاصيل اللاعب الكاملة -->
+    <div id="playerDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50 p-4">
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-blue-800 text-white p-4 flex justify-between items-center">
+                <h3 class="text-lg font-bold">بيانات وتفاصيل اللاعب</h3>
+                <button onclick="closePlayerModal()" class="text-white hover:text-gray-200 text-xl font-bold">&times;</button>
+            </div>
+            <div id="playerModalBody" class="p-6 space-y-3 text-sm">
+                <!-- تعبئة بيانات اللاعب هنا -->
+            </div>
+            <div class="bg-gray-100 p-4 text-left">
+                <button onclick="closePlayerModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة طلبات التسجيل المعلقة -->
+    <div id="requestsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50 p-4">
+        <div class="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="bg-blue-800 text-white p-4 flex justify-between items-center">
+                <h3 class="text-lg font-bold">طلبات التسجيل المعلقة</h3>
+                <button onclick="closeRequestsModal()" class="text-white hover:text-gray-200 text-xl font-bold">&times;</button>
+            </div>
+            <div id="requestsModalBody" class="p-6 overflow-y-auto space-y-4 flex-1">
+                <!-- تعبئة ديناميكية للطلبات -->
+            </div>
+            <div class="bg-gray-100 p-4 text-left">
+                <button onclick="closeRequestsModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let players = JSON.parse(localStorage.getItem('academy_players')) || [];
         let expenses = JSON.parse(localStorage.getItem('academy_expenses')) || [];
         let paymentsLog = JSON.parse(localStorage.getItem('academy_payments_log')) || [];
+        let requests = JSON.parse(localStorage.getItem('academy_requests')) || [];
         let prices = JSON.parse(localStorage.getItem('academy_prices')) || { base: 50, transport: 25 };
+
+        let currentAgeFilter = 'all';
 
         document.getElementById('basePrice').value = prices.base;
         document.getElementById('transportPrice').value = prices.transport;
-        
-        // تعيين تاريخ اليوم افتراضياً في حقل المصروفات
         document.getElementById('expDate').valueAsDate = new Date();
+
+        function initYearSelector() {
+            const yearSelect = document.getElementById('filterYear');
+            const currentYear = new Date().getFullYear();
+            let options = '';
+            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+                options += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+            }
+            yearSelect.innerHTML = options;
+
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+            document.getElementById('filterMonth').value = currentMonth;
+        }
+
+        function updateRequestsBadge() {
+            const badge = document.getElementById('requestsBadge');
+            if (requests.length > 0) {
+                badge.innerText = requests.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function openRequestsModal() {
+            renderRequestsList();
+            document.getElementById('requestsModal').classList.remove('hidden');
+        }
+
+        function closeRequestsModal() {
+            document.getElementById('requestsModal').classList.add('hidden');
+        }
+
+        function renderRequestsList() {
+            const container = document.getElementById('requestsModalBody');
+            container.innerHTML = '';
+
+            if (requests.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 py-8">لا توجد طلبات تسجيل معلقة حالياً.</p>`;
+                return;
+            }
+
+            requests.forEach(req => {
+                const waContactLink = `https://wa.me/${req.parentPhone}?text=${encodeURIComponent('مرحباً ولي أمر اللاعب ' + req.fullName + '، بخصوص طلب تسجيلكم في الأكاديمية الإسبانية...')}`;
+
+                container.innerHTML += `
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="space-y-1 text-sm">
+                            <p class="font-bold text-blue-900 text-base">👤 اسم اللاعب: ${req.fullName}</p>
+                            <div class="grid grid-cols-2 gap-x-4 text-gray-600">
+                                <p>📅 تاريخ الميلاد: ${req.birthDate} (${req.ageGroup})</p>
+                                <p>🏠 مكان السكن: ${req.address}</p>
+                                <p>👨‍👦 ولي الأمر: ${req.parentName}</p>
+                                <p>📞 الهاتف: ${req.parentPhone}</p>
+                                <p>📏 الطول: ${req.height} سم | ⚖️ الوزن: ${req.weight} كغ</p>
+                                <p>🚐 التوصيل: ${req.transport} (${req.totalFees} دينار)</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2 w-full md:w-auto">
+                            <a href="${waContactLink}" target="_blank" class="bg-emerald-600 text-white px-4 py-1.5 rounded text-xs text-center font-semibold hover:bg-emerald-700">تواصل واتساب 📲</a>
+                            <button onclick="approveRequest(${req.id})" class="bg-green-600 text-white px-4 py-1.5 rounded text-xs font-semibold hover:bg-green-700">تثبيت وقبول الاشتراك ✅</button>
+                            <button onclick="rejectRequest(${req.id})" class="bg-red-500 text-white px-4 py-1.5 rounded text-xs font-semibold hover:bg-red-600">رفض وحذف ❌</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function approveRequest(id) {
+            const reqIndex = requests.findIndex(r => r.id === id);
+            if (reqIndex === -1) return;
+
+            const req = requests[reqIndex];
+            const now = new Date();
+            const currentYear = String(now.getFullYear());
+            const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+
+            const newPlayer = {
+                id: Date.now(),
+                fullName: req.fullName,
+                birthDate: req.birthDate,
+                ageGroup: req.ageGroup,
+                address: req.address,
+                parentName: req.parentName,
+                parentPhone: req.parentPhone,
+                height: req.height,
+                weight: req.weight,
+                transport: req.transport,
+                totalFees: req.totalFees,
+                paidFees: 0,
+                lastPaymentInfo: null,
+                activeYear: currentYear,
+                activeMonth: currentMonth
+            };
+
+            players.push(newPlayer);
+            localStorage.setItem('academy_players', JSON.stringify(players));
+
+            requests.splice(reqIndex, 1);
+            localStorage.setItem('academy_requests', JSON.stringify(requests));
+
+            updateRequestsBadge();
+            renderRequestsList();
+            renderDashboard();
+            alert('تم قبول الطلب وتثبيت الاشتراك بنجاح!');
+        }
+
+        function rejectRequest(id) {
+            if (!confirm('هل أنت متأكد من رفض وحذف هذا الطلب؟')) return;
+            requests = requests.filter(r => r.id !== id);
+            localStorage.setItem('academy_requests', JSON.stringify(requests));
+            updateRequestsBadge();
+            renderRequestsList();
+        }
+
+        function showPlayerDetails(id) {
+            const p = players.find(player => player.id === id);
+            if (!p) return;
+
+            const body = document.getElementById('playerModalBody');
+            body.innerHTML = `
+                <p><strong>👤 اسم اللاعب:</strong> <span class="text-blue-900 font-semibold">${p.fullName}</span></p>
+                <p><strong>📅 تاريخ الميلاد:</strong> ${p.birthDate || 'غير محدد'}</p>
+                <p><strong>🏷️ الفئة العمرية:</strong> ${p.ageGroup}</p>
+                <p><strong>🏠 مكان السكن:</strong> ${p.address || 'غير محدد'}</p>
+                <p><strong>👨‍👦 اسم ولي الأمر:</strong> ${p.parentName}</p>
+                <p><strong>📞 رقم الهاتف:</strong> ${p.parentPhone}</p>
+                <p><strong>📏 الطول:</strong> ${p.height} سم</p>
+                <p><strong>⚖️ الوزن:</strong> ${p.weight} كغ</p>
+                <p><strong>🚐 خدمة التوصيل:</strong> ${p.transport}</p>
+                <p><strong>💰 إجمالي رسوم الشهر:</strong> ${p.totalFees} دينار</p>
+                <p><strong>✅ المدفوع الكلي:</strong> ${p.paidFees} دينار</p>
+                <p><strong>⚠️ المتبقي:</strong> ${p.totalFees - p.paidFees} دينار</p>
+            `;
+            document.getElementById('playerDetailsModal').classList.remove('hidden');
+        }
+
+        function closePlayerModal() {
+            document.getElementById('playerDetailsModal').classList.add('hidden');
+        }
+
+        function editPlayerFees(id) {
+            const p = players.find(player => player.id === id);
+            if (!p) return;
+
+            const newFeesStr = prompt(`تعديل رسوم للاعب: ${p.fullName}\nالرسوم الحالية: ${p.totalFees} دينار\n\nأدخل المبلغ الإجمالي الجديد للرسوم (أو قيمة الخصم الجديد):`, p.totalFees);
+            if (newFeesStr === null || newFeesStr === '') return;
+            const newFees = parseFloat(newFeesStr);
+
+            if (isNaN(newFees) || newFees < 0) {
+                alert('يرجى إدخال مبلغ صحيح.');
+                return;
+            }
+
+            p.totalFees = newFees;
+            localStorage.setItem('academy_players', JSON.stringify(players));
+            renderDashboard();
+            alert('تم تحديث رسوم اللاعب بنجاح!');
+        }
+
+        function rolloverPlayer(id) {
+            const p = players.find(player => player.id === id);
+            if (!p) return;
+
+            let currentPYear = parseInt(p.activeYear) || new Date().getFullYear();
+            let currentPMonth = parseInt(p.activeMonth) || (new Date().getMonth() + 1);
+
+            currentPMonth += 1;
+            if (currentPMonth > 12) {
+                currentPMonth = 1;
+                currentPYear += 1;
+            }
+
+            const nextMonthStr = String(currentPMonth).padStart(2, '0');
+            const nextYearStr = String(currentPYear);
+
+            if (!confirm(`هل تريد ترحيل اللاعب (${p.fullName}) إلى الشهر القادم (${nextMonthStr} / ${nextYearStr})؟\n(سيتم إنشاء سجل جديد له في شهر ${nextMonthStr} مع إبقاء سجله الحالي في شهر ${p.activeMonth} محفوظاً دون حذف)`)) return;
+
+            const duplicatedPlayer = {
+                ...p,
+                id: Date.now(),
+                paidFees: 0,
+                lastPaymentInfo: null,
+                activeYear: nextYearStr,
+                activeMonth: nextMonthStr
+            };
+
+            players.push(duplicatedPlayer);
+            localStorage.setItem('academy_players', JSON.stringify(players));
+            renderDashboard();
+            alert(`تم ترحيل ونسخ اللاعب ${p.fullName} إلى شهر ${nextMonthStr}/${nextYearStr} بنجاح وبقي موجوداً في شهر ${p.activeMonth}!`);
+        }
+
+        function cancelSubscription(id) {
+            const p = players.find(player => player.id === id);
+            if (!p) return;
+
+            if (!confirm(`⚠️ تحذير: هل أنت متأكد من إلغاء اشتراك وحذف اللاعب (${p.fullName}) نهائياً من القائمة؟`)) return;
+
+            players = players.filter(player => player.id !== id);
+            localStorage.setItem('academy_players', JSON.stringify(players));
+            renderDashboard();
+            alert('تم إلغاء الاشتراك وحذف اللاعب بنجاح.');
+        }
 
         function savePrices(e) {
             e.preventDefault();
             prices.base = parseFloat(document.getElementById('basePrice').value);
             prices.transport = parseFloat(document.getElementById('transportPrice').value);
             localStorage.setItem('academy_prices', JSON.stringify(prices));
-            alert('تم تحديث الأسعار والعروض بنجاح!');
+            alert('تم تحديث الأسعار العامة بنجاح!');
         }
 
         function addExpense(e) {
@@ -188,25 +468,11 @@
             if (!receiverName) return;
 
             player.paidFees = (player.paidFees || 0) + payAmount;
-            localStorage.setItem('academy_players', JSON.stringify(players));
 
             const now = new Date();
-            const rawDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+            const rawDate = now.toISOString().split('T')[0];
             const dateStr = now.toLocaleDateString('ar-JO', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' });
             const timeStr = now.toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' });
-
-            // تسجيل الدفعة في سجل الإيرادات الشهرية
-            paymentsLog.push({
-                id: Date.now(),
-                playerId: player.id,
-                playerName: player.fullName,
-                amount: payAmount,
-                rawDate: rawDate,
-                date: dateStr,
-                time: timeStr,
-                receiver: receiverName
-            });
-            localStorage.setItem('academy_payments_log', JSON.stringify(paymentsLog));
 
             const remaining = player.totalFees - player.paidFees;
             const receiptMsg = `⚽ *الأكاديمية الإسبانية لكرة القدم* ⚽\n` +
@@ -221,37 +487,129 @@
                                `⚠️ المبلغ المتبقي: ${remaining} دينار\n\n` +
                                `شكراً لثقتكم وتعاونكم معنا ❤️`;
 
-            const waLink = `https://wa.me/${player.parentPhone}?text=${encodeURIComponent(receiptMsg)}`;
-            window.open(waLink, '_blank');
+            player.lastPaymentInfo = receiptMsg;
+            localStorage.setItem('academy_players', JSON.stringify(players));
+
+            paymentsLog.push({
+                id: Date.now(),
+                playerId: player.id,
+                playerName: player.fullName,
+                amount: payAmount,
+                rawDate: rawDate,
+                date: dateStr,
+                time: timeStr,
+                receiver: receiverName
+            });
+            localStorage.setItem('academy_payments_log', JSON.stringify(paymentsLog));
+
+            navigator.clipboard.writeText(receiptMsg).then(() => {
+                alert('تم تسجيل الدفعة بنجاح، ونسخ سند القبض إلى الحافظة (Clipboard)! يمكنك لصقه مباشرة في واتساب.');
+            }).catch(err => {
+                alert('تم تسجيل الدفعة بنجاح.');
+            });
+
             renderDashboard();
         }
 
-        function renderDashboard(filteredList = players) {
+        function copyReceipt(id) {
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+
+            if (!player.lastPaymentInfo) {
+                alert('لا يوجد سند قبض مسجل لهذا اللاعب حتى الآن. يرجى تسجيل دفعة أولاً.');
+                return;
+            }
+
+            navigator.clipboard.writeText(player.lastPaymentInfo).then(() => {
+                alert(`تم نسخ سند القبض الخاص باللاعب (${player.fullName}) إلى الحافظة بنجاح! 📋\nيمكنك لصقه الآن في محادثة واتساب ولي الأمر.`);
+            }).catch(err => {
+                alert('فشل نسخ السند، يرجى المحاولة مرة أخرى.');
+            });
+        }
+
+        function renderDashboard() {
+            const selectedYear = document.getElementById('filterYear').value;
+            const selectedMonth = document.getElementById('filterMonth').value;
+
+            const filteredPayments = paymentsLog.filter(pay => {
+                if (!pay.rawDate) return false;
+                const [pYear, pMonth] = pay.rawDate.split('-');
+                if (selectedMonth === 'all') {
+                    return pYear === selectedYear;
+                } else {
+                    return pYear === selectedYear && pMonth === selectedMonth;
+                }
+            });
+
+            const filteredExpenses = expenses.filter(exp => {
+                if (!exp.rawDate) return false;
+                const [eYear, eMonth] = exp.rawDate.split('-');
+                if (selectedMonth === 'all') {
+                    return eYear === selectedYear;
+                } else {
+                    return eYear === selectedYear && eMonth === selectedMonth;
+                }
+            });
+
+            let displayedPlayers = players.filter(p => {
+                if (!p.activeYear || !p.activeMonth) {
+                    p.activeYear = selectedYear;
+                    p.activeMonth = selectedMonth === 'all' ? '09' : selectedMonth;
+                }
+
+                if (selectedMonth === 'all') {
+                    return p.activeYear === selectedYear;
+                } else {
+                    return p.activeYear === selectedYear && p.activeMonth === selectedMonth;
+                }
+            });
+
+            if (currentAgeFilter !== 'all') {
+                displayedPlayers = displayedPlayers.filter(p => p.ageGroup === currentAgeFilter);
+            }
+
             const tbody = document.getElementById('playersTable');
             tbody.innerHTML = '';
 
-            if (filteredList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-500">لا يوجد لاعبين مسجلين</td></tr>`;
+            if (displayedPlayers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="14" class="p-4 text-center text-gray-500">لا يوجد لاعبين مسجلين في هذا الشهر</td></tr>`;
             } else {
-                filteredList.forEach(p => {
+                displayedPlayers.forEach((p, index) => {
                     const remaining = p.totalFees - p.paidFees;
                     const msg = `مرحباً ولي أمر اللاعب ${p.fullName}، تذكير من الأكاديمية الإسبانية بأن المبلغ المستحق عليكم هو ${remaining} دينار. شكراً.`;
                     const waLink = `https://wa.me/${p.parentPhone}?text=${encodeURIComponent(msg)}`;
 
+                    const copyBtnClass = p.lastPaymentInfo ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed';
+
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50 text-sm">
+                            <td class="p-3 font-bold text-gray-500">${index + 1}</td>
                             <td class="p-3 font-semibold">${p.fullName}</td>
                             <td class="p-3"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">${p.ageGroup}</span></td>
                             <td class="p-3">${p.parentName}<br><span class="text-xs text-gray-500">${p.parentPhone}</span></td>
-                            <td class="p-3">${p.transport}</td>
-                            <td class="p-3">${p.totalFees} دينار</td>
+                            <td class="p-3">${p.transport}<br><span class="font-bold text-gray-700">${p.totalFees} دينار</span></td>
                             <td class="p-3 text-green-600 font-semibold">${p.paidFees} دينار</td>
                             <td class="p-3 text-red-600 font-semibold">${remaining} دينار</td>
                             <td class="p-3 text-center">
-                                <button onclick="addPayment(${p.id})" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">قبض وسند 🧾</button>
+                                <button onclick="showPlayerDetails(${p.id})" class="bg-indigo-600 text-white px-2 py-1 rounded text-xs hover:bg-indigo-700">تفاصيل 👁️</button>
                             </td>
                             <td class="p-3 text-center">
-                                <a href="${waLink}" target="_blank" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">تذكير 📲</a>
+                                <button onclick="editPlayerFees(${p.id})" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600">تعديل/خصم ✏️</button>
+                            </td>
+                            <td class="p-3 text-center">
+                                <button onclick="addPayment(${p.id})" class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700">قبض وسند 🧾</button>
+                            </td>
+                            <td class="p-3 text-center">
+                                <button onclick="copyReceipt(${p.id})" class="${copyBtnClass} px-2.5 py-1 rounded text-xs font-semibold">نسخ السند 📋</button>
+                            </td>
+                            <td class="p-3 text-center">
+                                <button onclick="rolloverPlayer(${p.id})" class="bg-blue-500 text-white px-2.5 py-1 rounded text-xs hover:bg-blue-600">ترحيل للشهر 🔄</button>
+                            </td>
+                            <td class="p-3 text-center">
+                                <button onclick="cancelSubscription(${p.id})" class="bg-red-600 text-white px-2.5 py-1 rounded text-xs hover:bg-red-700">إلغاء ❌</button>
+                            </td>
+                            <td class="p-3 text-center">
+                                <a href="${waLink}" target="_blank" class="bg-teal-600 text-white px-2.5 py-1 rounded text-xs hover:bg-teal-700">تذكير 📲</a>
                             </td>
                         </tr>
                     `;
@@ -260,10 +618,10 @@
 
             const expTbody = document.getElementById('expensesTableBody');
             expTbody.innerHTML = '';
-            if (expenses.length === 0) {
-                expTbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500 text-sm">لا توجد مصروفات مسجلة</td></tr>`;
+            if (filteredExpenses.length === 0) {
+                expTbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500 text-sm">لا توجد مصروفات مسجلة لهذه الفترة</td></tr>`;
             } else {
-                expenses.forEach(exp => {
+                filteredExpenses.forEach(exp => {
                     expTbody.innerHTML += `
                         <tr class="border-b text-sm hover:bg-gray-50">
                             <td class="p-2 font-medium">${exp.title}</td>
@@ -278,19 +636,24 @@
                 });
             }
 
-            let totalRev = players.reduce((sum, p) => sum + p.paidFees, 0);
-            let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+            let totalRev = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+            let totalExp = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+            
             document.getElementById('totalRev').innerText = totalRev + ' دينار';
             document.getElementById('totalExp').innerText = totalExp + ' دينار';
             document.getElementById('netProfit').innerText = (totalRev - totalExp) + ' دينار';
         }
 
         function filterAge(group) {
-            if (group === 'all') renderDashboard(players);
-            else renderDashboard(players.filter(p => p.ageGroup === group));
+            currentAgeFilter = group;
+            renderDashboard();
         }
 
-        window.onload = () => renderDashboard();
+        window.onload = () => {
+            initYearSelector();
+            renderDashboard();
+            updateRequestsBadge();
+        };
     </script>
 </body>
 </html>

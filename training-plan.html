@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الخطة التدريبية الشهرية - الأكاديمية الإسبانية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans p-6">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 space-y-6">
+        
+        <!-- رأس الصفحة -->
+        <header class="flex justify-between items-center border-b pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-900">⚽ الأكاديمية الإسبانية لكرة القدم ⚽</h1>
+                <p class="text-gray-600 mt-1">الخطة التدريبية والمواعيد الرسمية لشهر <span id="displayMonthYear" class="font-bold text-blue-600">سبتمبر (9) 2026</span></p>
+            </div>
+            <div id="adminControls" class="flex gap-2">
+                <a href="dashboard.html" class="bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-700">🔙 لوحة التحكم</a>
+                <button onclick="toggleViewMode()" id="modeBtn" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-purple-700">👁️ معاينة ولي الأمر</button>
+            </div>
+        </header>
+
+        <!-- قسم لاعب الأسبوع المميز -->
+        <section class="bg-gradient-to-r from-amber-500 to-yellow-400 p-4 rounded-xl text-white shadow flex items-center justify-between">
+            <div class="space-y-1">
+                <h3 class="font-bold text-lg flex items-center gap-2">⭐ نجم الأسبوع المميز في الأكاديمية</h3>
+                <p class="text-xs text-amber-100">تم اختيار هذا اللاعب بناءً على أدائه وانضباطه العالي في التدريبات الأخيرة.</p>
+            </div>
+            <div class="bg-white text-amber-900 px-4 py-2 rounded-lg font-bold text-center shadow">
+                <span id="starPlayerName" contenteditable="true" class="outline-none">محمد أحمد (فئة 9-11)</span>
+            </div>
+        </section>
+
+        <!-- معلومات عامة -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50 p-4 rounded-xl text-sm">
+            <div>
+                <span class="font-bold text-blue-900">📌 عدد الحصص أسبوعياً:</span> 
+                <span contenteditable="true" id="planSessions" class="editable-field bg-white px-2 py-1 rounded border inline-block mt-1 w-full">3 حصص (أحد، ثلاثاء، خميس)</span>
+            </div>
+            <div>
+                <span class="font-bold text-blue-900">⏰ وقت التدريب:</span> 
+                <span contenteditable="true" id="planTime" class="editable-field bg-white px-2 py-1 rounded border inline-block mt-1 w-full">من 5:00 إلى 6:30 مساءً</span>
+            </div>
+            <div>
+                <span class="font-bold text-blue-900">🏟️ مكان الملاعب:</span> 
+                <span contenteditable="true" id="planLocation" class="editable-field bg-white px-2 py-1 rounded border inline-block mt-1 w-full">ملاعب الأكاديمية - عمان</span>
+            </div>
+        </div>
+
+        <!-- جدول الحصص والتمارين -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr class="bg-blue-800 text-white text-sm">
+                        <th class="p-3 rounded-r-lg">الأسبوع / اليوم</th>
+                        <th class="p-3">الموعد والتاريخ</th>
+                        <th class="p-3">محور التدريب الأساسي</th>
+                        <th class="p-3 rounded-l-lg">التمارين والمهارات المستهدفة</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm divide-y" id="planTableBody">
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 font-bold text-blue-900">الأسبوع الأول</td>
+                        <td class="p-3 editable-cell" contenteditable="true">الأحد / الثلاثاء / الخميس</td>
+                        <td class="p-3 font-semibold text-emerald-700 editable-cell" contenteditable="true">تقييم اللياقة والتحكم بالكرة</td>
+                        <td class="p-3 text-gray-600 editable-cell" contenteditable="true">استلام وتسليم، جري بالكرة، مباريات مصغرة 5 ضد 5</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 font-bold text-blue-900">الأسبوع الثاني</td>
+                        <td class="p-3 editable-cell" contenteditable="true">الأحد / الثلاثاء / الخميس</td>
+                        <td class="p-3 font-semibold text-emerald-700 editable-cell" contenteditable="true">التمرير والدقة والتمركز</td>
+                        <td class="p-3 text-gray-600 editable-cell" contenteditable="true">تمرين التمريرات الطويلة، التمركز الصحيح، الرقابة الدفاعية</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 font-bold text-blue-900">الأسبوع الثالث</td>
+                        <td class="p-3 editable-cell" contenteditable="true">الأحد / الثلاثاء / الخميس</td>
+                        <td class="p-3 font-semibold text-emerald-700" contenteditable="true">المراوغة والتسديد على المرمى</td>
+                        <td class="p-3 text-gray-600 editable-cell" contenteditable="true">مهارات 1 ضد 1، التسديد من مسافات مختلفة، رد فعل الحراس</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 font-bold text-blue-900">الأسبوع الرابع</td>
+                        <td class="p-3 editable-cell" contenteditable="true">الأحد / الثلاثاء / الخميس</td>
+                        <td class="p-3 font-semibold text-emerald-700" contenteditable="true">الخطط الجماعية والبطولة الشهرية</td>
+                        <td class="p-3 text-gray-600 editable-cell" contenteditable="true">تطبيق خطط اللعب، التكتيك الجماعي، بطولة ودية بين فئات الأكاديمية</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ملاحظات هامة -->
+        <div class="bg-amber-50 border-r-4 border-amber-500 p-4 text-xs text-amber-900 space-y-1">
+            <p class="font-bold">⚠️ ملاحظات هامة لأولياء الأمور:</p>
+            <p contenteditable="true" id="planNote1" class="editable-field">1. يرجى إحضار زجاجة الماء الخاصة باللاعب والالتزام بالزي الرياضي الرسمي للأكاديمية.</p>
+            <p contenteditable="true" id="planNote2" class="editable-field">2. الحضور قبل موعد التمرين بـ 10 دقائق لعمل الإحماء البدني.</p>
+        </div>
+
+        <!-- أزرار الإجراءات -->
+        <div class="flex flex-wrap justify-center gap-4 pt-2">
+            <button onclick="savePlanData()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl shadow text-sm transition">
+                💾 حفظ التعديلات
+            </button>
+            <button onclick="copyParentLink()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl shadow text-sm transition">
+                🔗 نسخ رابط العرض لأولياء الأمور
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // أسماء الشهور بالعربي
+        const monthsNames = {
+            "01": "يناير (1)", "02": "فبراير (2)", "03": "مارس (3)", "04": "أبريل (4)",
+            "05": "مايو (5)", "06": "يونيو (6)", "07": "يوليو (7)", "08": "أغسطس (8)",
+            "09": "سبتمبر (9)", "10": "أكتوبر (10)", "11": "نوفمبر (11)", "12": "ديسمبر (12)"
+        };
+
+        // جلب الشهر والسنة من localStorage (أو افتراضي من الصفحة الرئيسية)
+        function loadHeaderDate() {
+            // ملاحظة: يمكنك تخزين السنة والشهر في localStorage من الصفحة الرئيسية عند تغييرهما
+            let savedYear = localStorage.getItem('academy_filter_year') || new Date().getFullYear();
+            let savedMonth = localStorage.getItem('academy_filter_month') || String(new Date().getMonth() + 1).padStart(2, '0');
+            
+            let monthText = savedMonth === 'all' ? 'السنة كاملة' : monthsNames[savedMonth];
+            document.getElementById('displayMonthYear').innerText = `${monthText} ${savedYear}`;
+        }
+
+        // حفظ الخطة في الـ localStorage لتبقى محفوظة وتظهر لولي الأمر عند فتح الرابط
+        function savePlanData() {
+            const planData = {
+                starPlayer: document.getElementById('starPlayerName').innerText,
+                sessions: document.getElementById('planSessions').innerText,
+                time: document.getElementById('planTime').innerText,
+                location: document.getElementById('planLocation').innerText,
+                note1: document.getElementById('planNote1').innerText,
+                note2: document.getElementById('planNote2').innerText,
+                tableHtml: document.getElementById('planTableBody').innerHTML
+            };
+            localStorage.setItem('academy_training_plan', JSON.stringify(planData));
+            alert('تم حفظ التعديلات بنجاح! سيتم عرضها لأولياء الأمور مباشرة.');
+        }
+
+        // استرجاع البيانات المحفوظة عند فتح الصفحة
+        function loadSavedPlan() {
+            const saved = localStorage.getItem('academy_training_plan');
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('starPlayerName').innerText = data.starPlayer;
+                document.getElementById('planSessions').innerText = data.sessions;
+                document.getElementById('planTime').innerText = data.time;
+                document.getElementById('planLocation').innerText = data.location;
+                document.getElementById('planNote1').innerText = data.note1;
+                document.getElementById('planNote2').innerText = data.note2;
+                document.getElementById('planTableBody').innerHTML = data.tableHtml;
+            }
+        }
+
+        // وضع معاينة ولي الأمر (إخفاء أزرار التعديل والحفظ وجعل الجدول للقراءة فقط)
+        let isParentView = false;
+        function toggleViewMode() {
+            isParentView = !isParentView;
+            const modeBtn = document.getElementById('modeBtn');
+            const adminControls = document.getElementById('adminControls');
+            
+            // إلغاء تفعيل الـ contenteditable لكل العناصر القابلة للتعديل
+            const editables = document.querySelectorAll('[contenteditable]');
+            editables.forEach(el => el.setAttribute('contenteditable', !isParentView));
+
+            if (isParentView) {
+                modeBtn.innerText = "✏️ العودة لوضع الإدارة";
+                modeBtn.classList.replace('bg-purple-600', 'bg-amber-600');
+                // إخفاء أزرار الحفظ والتحكم الإضافية للمعاينة
+                document.querySelector('button[onclick="savePlanData()"]').style.display = 'none';
+                document.querySelector('button[onclick="copyParentLink()"]').style.display = 'none';
+                alert('أنت الآن تشاهد الصفحة بالشتمامة التي يراها ولي الأمر (للقراءة فقط).');
+            } else {
+                modeBtn.innerText = "👁️ معاينة ولي الأمر";
+                modeBtn.classList.replace('bg-amber-600', 'bg-purple-600');
+                document.querySelector('button[onclick="savePlanData()"]').style.display = 'inline-block';
+                document.querySelector('button[onclick="copyParentLink()"]').style.display = 'inline-block';
+            }
+        }
+
+        // نسخ رابط الخطة لإرساله لولي الأمر
+        function copyParentLink() {
+            // حفظ التعديلات تلقائياً قبل النسخ
+            savePlanData();
+            
+            const currentUrl = window.location.href;
+            navigator.clipboard.writeText(currentUrl).then(() => {
+                alert('📋 تم نسخ رابط الخطة التدريبية بنجاح!\nأرسله لولي الأمر عبر واتساب ليتمكن من رؤية الجدول ونجم الأسبوع مباشرة بدون أي صلاحية تعديل.');
+            });
+        }
+
+        window.onload = () => {
+            loadHeaderDate();
+            loadSavedPlan();
+        };
+    </script>
+</body>
+</html>

@@ -57,11 +57,10 @@
             <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 mt-6">إرسال طلب التسجيل</button>
         </form>
         <div id="successMessage" class="hidden mt-6 p-4 bg-green-100 text-green-700 rounded-lg text-center font-semibold">
-            تم إرسال طلب التسجيل بنجاح!
+            تم إرسال طلب التسجيل بنجاح! سيتم التواصل معكم قريباً من قبل إدارة الأكاديمية.
         </div>
     </div>
     <script>
-        // جلب الأسعار المحدثة من التخزين أو وضع أسعار افتراضية
         let prices = JSON.parse(localStorage.getItem('academy_prices')) || { base: 50, transport: 25 };
 
         function loadPricesText() {
@@ -85,7 +84,8 @@
             else if (age >= 12 && age <= 14) ageGroup = '12-14';
             else if (age >= 15 && age <= 16) ageGroup = '15-16';
 
-            const player = {
+            // تجهيز الطلب كطلب معلق (academy_requests) وليس كلاعب مباشر
+            const registrationRequest = {
                 id: Date.now(),
                 fullName: document.getElementById('fullName').value,
                 birthDate,
@@ -97,12 +97,12 @@
                 weight: document.getElementById('weight').value || '-',
                 transport: transportVal === 'yes' ? 'مع توصيل' : 'بدون توصيل',
                 totalFees: totalFees,
-                paidFees: 0 // البداية لم يدفع شيئاً
+                requestDate: new Date().toLocaleDateString('ar-JO')
             };
 
-            let players = JSON.parse(localStorage.getItem('academy_players')) || [];
-            players.push(player);
-            localStorage.setItem('academy_players', JSON.stringify(players));
+            let requests = JSON.parse(localStorage.getItem('academy_requests')) || [];
+            requests.push(registrationRequest);
+            localStorage.setItem('academy_requests', JSON.stringify(requests));
 
             document.getElementById('registrationForm').reset();
             document.getElementById('successMessage').classList.remove('hidden');
