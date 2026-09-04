@@ -9,7 +9,10 @@
 <body class="bg-gray-100 font-sans">
     <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
         <h1 class="text-xl font-bold">الأكاديمية الإسبانية - لوحة التحكم</h1>
-        <a href="login.html" class="bg-red-500 px-4 py-2 rounded text-sm hover:bg-red-600">تسجيل الخروج</a>
+        <div class="flex gap-3">
+            <a href="reports.html" class="bg-emerald-600 px-4 py-2 rounded text-sm hover:bg-emerald-700 font-semibold">📊 التقارير الشهرية والسنوية</a>
+            <a href="login.html" class="bg-red-500 px-4 py-2 rounded text-sm hover:bg-red-600">تسجيل الخروج</a>
+        </div>
     </header>
 
     <main class="container mx-auto p-6 space-y-6">
@@ -47,17 +50,48 @@
             </div>
         </section>
 
-        <!-- إضافة مصروفات جديدة -->
+        <!-- تسجبل المصروفات -->
         <section class="bg-white p-6 rounded-xl shadow">
-            <h2 class="text-lg font-bold text-gray-800 mb-3">تسجيل المصروفات (شو صرفنا)</h2>
-            <form onsubmit="addExpense(event)" class="flex gap-4">
-                <input type="text" id="expTitle" placeholder="بيان المصروف (مثل: كرات، إيجار ملعب)" required class="flex-1 px-3 py-2 border rounded-lg">
-                <input type="number" id="expAmount" placeholder="المبلغ (دينار)" required class="w-40 px-3 py-2 border rounded-lg">
-                <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700">إضافة مصروف</button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">تسجيل المصروفات (شو صرفنا)</h2>
+            <form onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">بيان المصروف</label>
+                    <input type="text" id="expTitle" placeholder="مثال: كرات، إيجار ملعب" required class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">المبلغ (دينار)</label>
+                    <input type="number" id="expAmount" placeholder="القيمة" required class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">التاريخ</label>
+                    <input type="date" id="expDate" required class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">مين اللي دفع؟</label>
+                    <input type="text" id="expPayer" placeholder="اسم المسؤول" required class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <button type="submit" class="w-full bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700">إضافة للسجل</button>
+                </div>
             </form>
+
+            <div class="mt-6 overflow-x-auto">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 border-b text-sm">
+                            <th class="p-2">بيان المصروف</th>
+                            <th class="p-2">القيمة</th>
+                            <th class="p-2">التاريخ واليوم</th>
+                            <th class="p-2">مين اللي دفع</th>
+                            <th class="p-2 text-center">إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesTableBody"></tbody>
+                </table>
+            </div>
         </section>
 
-        <!-- عرض اللاعبين والأعمار -->
+        <!-- جدول اللاعبين -->
         <section class="bg-white p-6 rounded-xl shadow">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-gray-800">قائمة اللاعبين والفئات العمرية</h2>
@@ -72,7 +106,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
-                        <tr class="bg-gray-100 border-b">
+                        <tr class="bg-gray-100 border-b text-sm">
                             <th class="p-3">اسم اللاعب</th>
                             <th class="p-3">الفئة</th>
                             <th class="p-3">ولي الأمر والهاتف</th>
@@ -80,7 +114,7 @@
                             <th class="p-3">الرسوم</th>
                             <th class="p-3">المدفوع</th>
                             <th class="p-3">المتبقي</th>
-                            <th class="p-3 text-center">تعديل الدفع</th>
+                            <th class="p-3 text-center">تسجيل دفعة وسند قبض</th>
                             <th class="p-3 text-center">تذكير واتساب</th>
                         </tr>
                     </thead>
@@ -93,10 +127,14 @@
     <script>
         let players = JSON.parse(localStorage.getItem('academy_players')) || [];
         let expenses = JSON.parse(localStorage.getItem('academy_expenses')) || [];
+        let paymentsLog = JSON.parse(localStorage.getItem('academy_payments_log')) || [];
         let prices = JSON.parse(localStorage.getItem('academy_prices')) || { base: 50, transport: 25 };
 
         document.getElementById('basePrice').value = prices.base;
         document.getElementById('transportPrice').value = prices.transport;
+        
+        // تعيين تاريخ اليوم افتراضياً في حقل المصروفات
+        document.getElementById('expDate').valueAsDate = new Date();
 
         function savePrices(e) {
             e.preventDefault();
@@ -110,23 +148,82 @@
             e.preventDefault();
             const title = document.getElementById('expTitle').value;
             const amount = parseFloat(document.getElementById('expAmount').value);
-            expenses.push({ title, amount });
+            const dateInput = document.getElementById('expDate').value;
+            const payer = document.getElementById('expPayer').value;
+
+            const dateObj = new Date(dateInput + 'T00:00:00');
+            const formattedDate = dateObj.toLocaleDateString('ar-JO', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' });
+
+            expenses.push({ id: Date.now(), title, amount, rawDate: dateInput, date: formattedDate, payer });
             localStorage.setItem('academy_expenses', JSON.stringify(expenses));
+            
             document.getElementById('expTitle').value = '';
             document.getElementById('expAmount').value = '';
+            document.getElementById('expPayer').value = '';
+            document.getElementById('expDate').valueAsDate = new Date();
+
             renderDashboard();
         }
 
-        function updatePaid(id) {
-            const newPaid = prompt("أدخل المبلغ المدفوع الجديد:");
-            if (newPaid !== null) {
-                players = players.map(p => {
-                    if (p.id === id) p.paidFees = parseFloat(newPaid) || 0;
-                    return p;
-                });
-                localStorage.setItem('academy_players', JSON.stringify(players));
-                renderDashboard();
+        function deleteExpense(id) {
+            expenses = expenses.filter(exp => exp.id !== id);
+            localStorage.setItem('academy_expenses', JSON.stringify(expenses));
+            renderDashboard();
+        }
+
+        function addPayment(id) {
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+
+            const payAmountStr = prompt(`اللاعب: ${player.fullName}\nالمتبقي عليه: ${player.totalFees - player.paidFees} دينار\n\nأدخل المبلغ الذي دفعه الآن:`);
+            if (payAmountStr === null || payAmountStr === "") return;
+            const payAmount = parseFloat(payAmountStr);
+
+            if (isNaN(payAmount) || payAmount <= 0) {
+                alert("يرجى إدخال مبلغ صحيح");
+                return;
             }
+
+            const receiverName = prompt("أدخل اسم المسؤول الذي استلم المبلغ:");
+            if (!receiverName) return;
+
+            player.paidFees = (player.paidFees || 0) + payAmount;
+            localStorage.setItem('academy_players', JSON.stringify(players));
+
+            const now = new Date();
+            const rawDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+            const dateStr = now.toLocaleDateString('ar-JO', { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' });
+
+            // تسجيل الدفعة في سجل الإيرادات الشهرية
+            paymentsLog.push({
+                id: Date.now(),
+                playerId: player.id,
+                playerName: player.fullName,
+                amount: payAmount,
+                rawDate: rawDate,
+                date: dateStr,
+                time: timeStr,
+                receiver: receiverName
+            });
+            localStorage.setItem('academy_payments_log', JSON.stringify(paymentsLog));
+
+            const remaining = player.totalFees - player.paidFees;
+            const receiptMsg = `⚽ *الأكاديمية الإسبانية لكرة القدم* ⚽\n` +
+                               `--- *سند قبض رسمي* ---\n\n` +
+                               `عزيزي ولي أمر اللاعب: *${player.fullName}*\n` +
+                               `تم استلام مبلغ وقدره: *${payAmount} دينار*\n` +
+                               `📅 التاريخ: ${dateStr}\n` +
+                               `⏰ الساعة: ${timeStr}\n` +
+                               `👤 استلم المبلغ المسؤول: *${receiverName}*\n\n` +
+                               `💰 إجمالي الرسوم: ${player.totalFees} دينار\n` +
+                               `✅ المدفوع حتى الآن: ${player.paidFees} دينار\n` +
+                               `⚠️ المبلغ المتبقي: ${remaining} دينار\n\n` +
+                               `شكراً لثقتكم وتعاونكم معنا ❤️`;
+
+            const waLink = `https://wa.me/${player.parentPhone}?text=${encodeURIComponent(receiptMsg)}`;
+            window.open(waLink, '_blank');
+            renderDashboard();
         }
 
         function renderDashboard(filteredList = players) {
@@ -142,7 +239,7 @@
                     const waLink = `https://wa.me/${p.parentPhone}?text=${encodeURIComponent(msg)}`;
 
                     tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50">
+                        <tr class="border-b hover:bg-gray-50 text-sm">
                             <td class="p-3 font-semibold">${p.fullName}</td>
                             <td class="p-3"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">${p.ageGroup}</span></td>
                             <td class="p-3">${p.parentName}<br><span class="text-xs text-gray-500">${p.parentPhone}</span></td>
@@ -151,17 +248,36 @@
                             <td class="p-3 text-green-600 font-semibold">${p.paidFees} دينار</td>
                             <td class="p-3 text-red-600 font-semibold">${remaining} دينار</td>
                             <td class="p-3 text-center">
-                                <button onclick="updatePaid(${p.id})" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600">تعديل الدفع</button>
+                                <button onclick="addPayment(${p.id})" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">قبض وسند 🧾</button>
                             </td>
                             <td class="p-3 text-center">
-                                <a href="${waLink}" target="_blank" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">تذكير 📲</a>
+                                <a href="${waLink}" target="_blank" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">تذكير 📲</a>
                             </td>
                         </tr>
                     `;
                 });
             }
 
-            // حساب المالية
+            const expTbody = document.getElementById('expensesTableBody');
+            expTbody.innerHTML = '';
+            if (expenses.length === 0) {
+                expTbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500 text-sm">لا توجد مصروفات مسجلة</td></tr>`;
+            } else {
+                expenses.forEach(exp => {
+                    expTbody.innerHTML += `
+                        <tr class="border-b text-sm hover:bg-gray-50">
+                            <td class="p-2 font-medium">${exp.title}</td>
+                            <td class="p-2 text-red-600 font-bold">${exp.amount} دينار</td>
+                            <td class="p-2 text-gray-600">${exp.date}</td>
+                            <td class="p-2">${exp.payer}</td>
+                            <td class="p-2 text-center">
+                                <button onclick="deleteExpense(${exp.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">حذف</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
             let totalRev = players.reduce((sum, p) => sum + p.paidFees, 0);
             let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
             document.getElementById('totalRev').innerText = totalRev + ' دينار';

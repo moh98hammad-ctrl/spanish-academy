@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التفاصيل المالية للشهر - الأكاديمية الإسبانية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 id="pageTitle" class="text-xl font-bold">التفاصيل المالية للشهر</h1>
+        <a href="reports.html" class="bg-gray-600 px-4 py-2 rounded text-sm hover:bg-gray-700">← العودة للتقارير السنوية</a>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-6">
+        <!-- قسم المجاميع المالية الثلاثة -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow border-t-4 border-green-600 text-center">
+                <h3 class="text-gray-500 text-sm font-semibold">إجمالي إيرادات الشهر</h3>
+                <p id="totalRevenue" class="text-3xl font-bold text-green-600 mt-2">0 دينار</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow border-t-4 border-red-600 text-center">
+                <h3 class="text-gray-500 text-sm font-semibold">إجمالي مصاريف الشهر</h3>
+                <p id="totalExpenses" class="text-3xl font-bold text-red-600 mt-2">0 دينار</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow border-t-4 border-blue-600 text-center">
+                <h3 class="text-gray-500 text-sm font-semibold">الصافي (الإيرادات - المصاريف)</h3>
+                <p id="netProfit" class="text-3xl font-bold text-blue-600 mt-2">0 دينار</p>
+            </div>
+        </section>
+
+        <!-- الجداول التفصيلية -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- جدول الإيرادات -->
+            <section class="bg-white p-5 rounded-xl shadow">
+                <h3 class="font-bold text-lg text-green-800 mb-4 border-b pb-2">💵 تفاصيل إيرادات اللاعبين</h3>
+                <div id="revenueList" class="space-y-3">
+                    <!-- تعبئة ديناميكية -->
+                </div>
+            </section>
+
+            <!-- جدول المصاريف -->
+            <section class="bg-white p-5 rounded-xl shadow">
+                <h3 class="font-bold text-lg text-red-800 mb-4 border-b pb-2">📉 تفاصيل المصروفات</h3>
+                <div id="expensesList" class="space-y-3">
+                    <!-- تعبئة ديناميكية -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const monthsNames = [
+            "كانون الثاني (1)", "شباط (2)", "آذار (3)", "نيسان (4)", 
+            "أيار (5)", "حزيران (6)", "تموز (7)", "آب (8)", 
+            "أيلول (9)", "تشرين الأول (10)", "تشرين الثاني (11)", "كانون الأول (12)"
+        ];
+
+        function extractYearAndMonth(dateStr) {
+            if (!dateStr) return { year: null, month: null };
+            if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
+                const parts = dateStr.split('-');
+                return { year: parts[0], month: parseInt(parts[1]) };
+            }
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return { year: parts[2], month: parseInt(parts[1]) };
+                }
+            }
+            return { year: null, month: null };
+        }
+
+        function loadMonthDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const month = parseInt(urlParams.get('month'));
+            const year = urlParams.get('year');
+
+            if (!month || !year) {
+                alert('لم يتم تحديد الشهر أو السنة بشكل صحيح!');
+                window.location.href = 'reports.html';
+                return;
+            }
+
+            document.getElementById('pageTitle').innerText = `تفاصيل الشهر: ${monthsNames[month - 1]} (${year})`;
+
+            const paymentsLog = JSON.parse(localStorage.getItem('academy_payments_log')) || [];
+            const expenses = JSON.parse(localStorage.getItem('academy_expenses')) || [];
+
+            // تصفية إيرادات ومصاريف هذا الشهر المحددة فقط
+            const monthPayments = paymentsLog.filter(p => {
+                const parsed = extractYearAndMonth(p.rawDate || p.date);
+                return parsed.year === year && parsed.month === month;
+            });
+
+            const monthExpenses = expenses.filter(e => {
+                const parsed = extractYearAndMonth(e.rawDate || e.date);
+                return parsed.year === year && parsed.month === month;
+            });
+
+            const totalRev = monthPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            const totalExp = monthExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+            const net = totalRev - totalExp;
+
+            // عرض المجاميع في الأعلى
+            document.getElementById('totalRevenue').innerText = totalRev + ' دينار';
+            document.getElementById('totalExpenses').innerText = totalExp + ' دينار';
+            
+            const netElement = document.getElementById('netProfit');
+            netElement.innerText = net + ' دينار';
+            netElement.className = `text-3xl font-bold mt-2 ${net >= 0 ? 'text-blue-600' : 'text-red-600'}`;
+
+            // تعبئة قائمة الإيرادات (اسم اللاعب، وقت الدفع، لمين دفع)
+            const revContainer = document.getElementById('revenueList');
+            revContainer.innerHTML = '';
+            if (monthPayments.length > 0) {
+                monthPayments.forEach(p => {
+                    revContainer.innerHTML += `
+                        <div class="bg-green-50 p-3 rounded-lg border border-green-200 flex justify-between items-center text-sm">
+                            <div>
+                                <p class="font-bold text-gray-800">👤 اللاعب: <span class="text-blue-900">${p.playerName || p.name || 'غير محدد'}</span></p>
+                                <p class="text-xs text-gray-500 mt-1">📅 تاريخ الدفع: ${p.date || p.rawDate || 'غير محدد'}</p>
+                            </div>
+                            <div class="text-left">
+                                <span class="bg-green-600 text-white font-bold px-2.5 py-1 rounded text-xs">${p.amount} دينار</span>
+                                <p class="text-xs text-gray-600 mt-1">المسؤول: <span class="font-semibold">${p.receiver || 'غير محدد'}</span></p>
+                            </div>
+                        </div>`;
+                });
+            } else {
+                revContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded">لا توجد إيرادات مسجلة في هذا الشهر.</p>`;
+            }
+
+            // تعبئة قائمة المصاريف (بيان المصروف، كم، مين دفع)
+            const expContainer = document.getElementById('expensesList');
+            expContainer.innerHTML = '';
+            if (monthExpenses.length > 0) {
+                monthExpenses.forEach(e => {
+                    expContainer.innerHTML += `
+                        <div class="bg-red-50 p-3 rounded-lg border border-red-200 flex justify-between items-center text-sm">
+                            <div>
+                                <p class="font-bold text-gray-800">📌 بيان المصروف: <span class="text-red-900">${e.title || e.expenseTitle || e.name || 'مصروف'}</span></p>
+                                <p class="text-xs text-gray-500 mt-1">📅 التاريخ: ${e.date || e.rawDate || 'غير محدد'}</p>
+                            </div>
+                            <div class="text-left">
+                                <span class="bg-red-600 text-white font-bold px-2.5 py-1 rounded text-xs">${e.amount} دينار</span>
+                                <p class="text-xs text-gray-600 mt-1">مين اللي دفع: <span class="font-semibold">${e.payer || 'غير محدد'}</span></p>
+                            </div>
+                        </div>`;
+                });
+            } else {
+                expContainer.innerHTML = `<p class="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded">لا توجد مصروفات مسجلة في هذا الشهر.</p>`;
+            }
+        }
+
+        window.onload = loadMonthDetails;
+    </script>
+</body>
+</html>

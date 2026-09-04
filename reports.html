@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير الشهرية والسنوية - الأكاديمية الإسبانية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-xl font-bold">التقارير المالية (حسب السنوات والأشهر)</h1>
+        <a href="dashboard.html" class="bg-gray-600 px-4 py-2 rounded text-sm hover:bg-gray-700">← العودة لوحة التحكم</a>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-6">
+        <!-- شريط التحكم بالسنة -->
+        <section class="bg-white p-6 rounded-xl shadow flex justify-between items-center">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">اختر السنة المالية:</label>
+                <select id="yearSelect" onchange="renderReports()" class="px-4 py-2 border rounded-lg bg-white font-bold text-blue-900 text-lg">
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
+            <div class="text-left">
+                <h3 class="text-gray-500 text-sm">إجمالي صافي السنة المختار</h3>
+                <p id="annualNet" class="text-2xl font-bold text-blue-600">0 دينار</p>
+            </div>
+        </section>
+
+        <!-- شبكة الأشهر (12 شهراً) -->
+        <div id="monthsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- سيتم تعبئة الأشهر ديناميكياً هنا -->
+        </div>
+    </main>
+
+    <!-- نافذة منبثقة (Modal) لعرض تفاصيل الشهر المفصلة -->
+    <div id="monthModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50 p-4">
+        <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="bg-blue-800 text-white p-4 flex justify-between items-center">
+                <h3 id="modalTitle" class="text-lg font-bold">تفاصيل الشهر</h3>
+                <button onclick="closeModal()" class="text-white hover:text-gray-200 text-xl font-bold">&times;</button>
+            </div>
+            <div id="modalBody" class="p-6 overflow-y-auto space-y-6 flex-1">
+                <!-- تفاصيل الإيرادات والمصاريف تظهر هنا -->
+            </div>
+            <div class="bg-gray-100 p-4 text-left">
+                <button onclick="closeModal()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const monthsNames = [
+            "كانون الثاني (1)", "شباط (2)", "آذار (3)", "نيسان (4)", 
+            "أيار (5)", "حزيران (6)", "تموز (7)", "آب (8)", 
+            "أيلول (9)", "تشرين الأول (10)", "تشرين الثاني (11)", "كانون الأول (12)"
+        ];
+
+        // دالة مساعدة لاستخراج السنة والشهر من أي صيغة تاريخ مخزنة
+        function extractYearAndMonth(dateStr) {
+            if (!dateStr) return { year: null, month: null };
+            // إذا كان التاريخ بصيغة YYYY-MM-DD
+            if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
+                const parts = dateStr.split('-');
+                return { year: parts[0], month: parseInt(parts[1]) };
+            }
+            // إذا كان التاريخ بصيغة DD/MM/YYYY (مثل 09/04/2026)
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return { year: parts[2], month: parseInt(parts[1]) };
+                }
+            }
+            return { year: null, month: null };
+        }
+
+        function renderReports() {
+            const selectedYear = document.getElementById('yearSelect').value;
+            const paymentsLog = JSON.parse(localStorage.getItem('academy_payments_log')) || [];
+            const expenses = JSON.parse(localStorage.getItem('academy_expenses')) || [];
+
+            const container = document.getElementById('monthsContainer');
+            container.innerHTML = '';
+
+            let annualTotalRev = 0;
+            let annualTotalExp = 0;
+
+            for (let m = 1; m <= 12; m++) {
+                // تصفية إيرادات هذا الشهر والسنة
+                const monthPayments = paymentsLog.filter(p => {
+                    const d = p.rawDate || p.date;
+                    const parsed = extractYearAndMonth(d);
+                    return parsed.year === selectedYear && parsed.month === m;
+                });
+
+                // تصفية مصروفات هذا الشهر والسنة (دعم جميع الأسماء المحتملة للحقول)
+                const monthExpenses = expenses.filter(e => {
+                    const d = e.rawDate || e.date;
+                    const parsed = extractYearAndMonth(d);
+                    return parsed.year === selectedYear && parsed.month === m;
+                });
+
+                const mRev = monthPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const mExp = monthExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+                const mNet = mRev - mExp;
+
+                annualTotalRev += mRev;
+                annualTotalExp += mExp;
+
+                container.innerHTML += `
+                    <div onclick="openMonthDetails(${m}, '${selectedYear}')" class="bg-white p-5 rounded-xl shadow border border-gray-200 cursor-pointer hover:border-blue-500 hover:shadow-md transition duration-200">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h3 class="font-bold text-lg text-blue-900">${monthsNames[m - 1]}</h3>
+                            <span class="text-sm font-semibold px-2.5 py-1 rounded ${mNet >= 0 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}">صافي: ${mNet} دينار</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 my-4 text-sm">
+                            <div class="bg-green-50 p-2.5 rounded">
+                                <span class="text-gray-500 block text-xs">الإيرادات</span>
+                                <span class="font-bold text-green-600">${mRev} دينار</span>
+                            </div>
+                            <div class="bg-red-50 p-2.5 rounded">
+                                <span class="text-gray-500 block text-xs">المصروفات</span>
+                                <span class="font-bold text-red-600">${mExp} دينار</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-600 text-center font-semibold">انقر لعرض التفاصيل الكاملة لحركات هذا الشهر ←</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('annualNet').innerText = (annualTotalRev - annualTotalExp) + ' دينار';
+        }
+
+        function openMonthDetails(monthIndex, year) {
+            const paymentsLog = JSON.parse(localStorage.getItem('academy_payments_log')) || [];
+            const expenses = JSON.parse(localStorage.getItem('academy_expenses')) || [];
+
+            const monthPayments = paymentsLog.filter(p => {
+                const d = p.rawDate || p.date;
+                const parsed = extractYearAndMonth(d);
+                return parsed.year === year && parsed.month === monthIndex;
+            });
+
+            const monthExpenses = expenses.filter(e => {
+                const d = e.rawDate || e.date;
+                const parsed = extractYearAndMonth(d);
+                return parsed.year === year && parsed.month === monthIndex;
+            });
+
+            document.getElementById('modalTitle').innerText = `تفاصيل شهر: ${monthsNames[monthIndex - 1]} (${year})`;
+
+            let bodyHtml = '';
+
+            // قسم إيرادات اللاعبين
+            bodyHtml += `<div>
+                <h4 class="font-bold text-green-700 text-base mb-2 border-b pb-1">💵 إيرادات المدفوعات من اللاعبين (${monthPayments.length})</h4>`;
+            
+            if (monthPayments.length > 0) {
+                bodyHtml += `<div class="space-y-2">`;
+                monthPayments.forEach(p => {
+                    const playerName = p.playerName || p.name || 'لاعب غير محدد';
+                    const payDate = p.date || p.rawDate || 'غير محدد';
+                    const receiver = p.receiver || p.employee || 'غير محدد';
+                    const amount = p.amount || 0;
+
+                    bodyHtml += `
+                        <div class="bg-green-50 p-3 rounded-lg border border-green-200 flex justify-between items-center text-sm">
+                            <div>
+                                <p class="font-bold text-gray-800">👤 اسم اللاعب: <span class="text-blue-900">${playerName}</span></p>
+                                <p class="text-xs text-gray-500 mt-1">📅 تاريخ الدفع: ${payDate}</p>
+                            </div>
+                            <div class="text-left">
+                                <span class="bg-green-600 text-white font-bold px-2.5 py-1 rounded text-xs">${amount} دينار</span>
+                                <p class="text-xs text-gray-600 mt-1">المسؤول المستلم: <span class="font-semibold">${receiver}</span></p>
+                            </div>
+                        </div>`;
+                });
+                bodyHtml += `</div>`;
+            } else {
+                bodyHtml += `<p class="text-sm text-gray-500 bg-gray-50 p-3 rounded">لا توجد إيرادات مسجلة في هذا الشهر.</p>`;
+            }
+            bodyHtml += `</div>`;
+
+            // قسم المصاريف (مع معالجة كافة احتمالات أسماء الحقول في اللوحة)
+            bodyHtml += `<div class="mt-4">
+                <h4 class="font-bold text-red-700 text-base mb-2 border-b pb-1">📉 المصروفات المسجلة (${monthExpenses.length})</h4>`;
+            
+            if (monthExpenses.length > 0) {
+                bodyHtml += `<div class="space-y-2">`;
+                monthExpenses.forEach(e => {
+                    const title = e.title || e.expenseTitle || e.name || 'مصروف عام';
+                    const amount = e.amount || 0;
+                    const payer = e.payer || e.responsible || 'غير محدد';
+                    const date = e.date || e.rawDate || 'غير محدد';
+
+                    bodyHtml += `
+                        <div class="box bg-red-50 p-3 rounded-lg border border-red-200 flex justify-between items-center text-sm">
+                            <div>
+                                <p class="font-bold text-gray-800">📌 بيان المصروف: <span class="text-red-900">${title}</span></p>
+                                <p class="text-xs text-gray-500 mt-1">📅 التاريخ: ${date}</p>
+                            </div>
+                            <div class="text-left">
+                                <span class="bg-red-600 text-white font-bold px-2.5 py-1 rounded text-xs">${amount} دينار</span>
+                                <p class="text-xs text-gray-600 mt-1">مين اللي دفع: <span class="font-semibold">${payer}</span></p>
+                            </div>
+                        </div>`;
+                });
+                bodyHtml += `</div>`;
+            } else {
+                bodyHtml += `<p class="text-sm text-gray-500 bg-gray-50 p-3 rounded">لا توجد مصروفات مسجلة في هذا الشهر.</p>`;
+            }
+            bodyHtml += `</div>`;
+
+            document.getElementById('modalBody').innerHTML = bodyHtml;
+            document.getElementById('monthModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('monthModal').classList.add('hidden');
+        }
+
+        window.onload = renderReports;
+    </script>
+</body><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير الشهرية والسنوية - الأكاديمية الإسبانية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center">
+        <h1 class="text-xl font-bold">التقارير المالية (حسب السنوات والأشهر)</h1>
+        <a href="dashboard.html" class="bg-gray-600 px-4 py-2 rounded text-sm hover:bg-gray-700">← العودة لوحة التحكم</a>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-6">
+        <!-- شريط التحكم بالسنة -->
+        <section class="bg-white p-6 rounded-xl shadow flex justify-between items-center">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">اختر السنة المالية:</label>
+                <select id="yearSelect" onchange="renderReports()" class="px-4 py-2 border rounded-lg bg-white font-bold text-blue-900 text-lg">
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
+            <div class="text-left">
+                <h3 class="text-gray-500 text-sm">إجمالي صافي السنة المختار</h3>
+                <p id="annualNet" class="text-2xl font-bold text-blue-600">0 دينار</p>
+            </div>
+        </section>
+
+        <!-- شبكة الأشهر (12 شهراً) -->
+        <div id="monthsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- سيتم تعبئة الأشهر ديناميكياً هنا -->
+        </div>
+    </main>
+
+    <script>
+        const monthsNames = [
+            "كانون الثاني (1)", "شباط (2)", "آذار (3)", "نيسان (4)", 
+            "أيار (5)", "حزيران (6)", "تموز (7)", "آب (8)", 
+            "أيلول (9)", "تشرين الأول (10)", "تشرين الثاني (11)", "كانون الأول (12)"
+        ];
+
+        function extractYearAndMonth(dateStr) {
+            if (!dateStr) return { year: null, month: null };
+            if (dateStr.includes('-') && dateStr.split('-')[0].length === 4) {
+                const parts = dateStr.split('-');
+                return { year: parts[0], month: parseInt(parts[1]) };
+            }
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return { year: parts[2], month: parseInt(parts[1]) };
+                }
+            }
+            return { year: null, month: null };
+        }
+
+        function renderReports() {
+            const selectedYear = document.getElementById('yearSelect').value;
+            const paymentsLog = JSON.parse(localStorage.getItem('academy_payments_log')) || [];
+            const expenses = JSON.parse(localStorage.getItem('academy_expenses')) || [];
+
+            const container = document.getElementById('monthsContainer');
+            container.innerHTML = '';
+
+            let annualTotalRev = 0;
+            let annualTotalExp = 0;
+
+            for (let m = 1; m <= 12; m++) {
+                const monthPayments = paymentsLog.filter(p => {
+                    const parsed = extractYearAndMonth(p.rawDate || p.date);
+                    return parsed.year === selectedYear && parsed.month === m;
+                });
+
+                const monthExpenses = expenses.filter(e => {
+                    const parsed = extractYearAndMonth(e.rawDate || e.date);
+                    return parsed.year === selectedYear && parsed.month === m;
+                });
+
+                const mRev = monthPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+                const mExp = monthExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+                const mNet = mRev - mExp;
+
+                annualTotalRev += mRev;
+                annualTotalExp += mExp;
+
+                container.innerHTML += `
+                    <div onclick="goToMonthDetails(${m}, '${selectedYear}')" class="bg-white p-5 rounded-xl shadow border border-gray-200 cursor-pointer hover:border-blue-500 hover:shadow-md transition duration-200">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h3 class="font-bold text-lg text-blue-900">${monthsNames[m - 1]}</h3>
+                            <span class="text-sm font-semibold px-2.5 py-1 rounded ${mNet >= 0 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}">صافي: ${mNet} دينار</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 my-4 text-sm">
+                            <div class="bg-green-50 p-2.5 rounded">
+                                <span class="text-gray-500 block text-xs">الإيرادات</span>
+                                <span class="font-bold text-green-600">${mRev} دينار</span>
+                            </div>
+                            <div class="bg-red-50 p-2.5 rounded">
+                                <span class="text-gray-500 block text-xs">المصروفات</span>
+                                <span class="font-bold text-red-600">${mExp} دينار</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-600 text-center font-semibold">انقر لفتح الصفحة التفصيلية الكاملة للشهر ←</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('annualNet').innerText = (annualTotalRev - annualTotalExp) + ' دينار';
+        }
+
+        function goToMonthDetails(month, year) {
+            window.location.href = `month-details.html?month=${month}&year=${year}`;
+        }
+
+        window.onload = renderReports;
+    </script>
+</body>
+</html>
+</html>
